@@ -275,9 +275,10 @@ static esp_err_t events_get_handler(httpd_req_t *req)
     uint32_t cursor = app_log_oldest_id();
     int idle_polls  = 0;    /* polls since last log entry was sent */
 
-    char     chunk[512];
-    char     escaped_tag[CFG_LOG_TAG_MAX * 2];
-    char     escaped_msg[CFG_LOG_MSG_MAX * 2];
+    /* Allocate these outside the loop to avoid repeated large stack frames */
+    char chunk[512];
+    char escaped_tag[CFG_LOG_TAG_MAX * 2];
+    char escaped_msg[CFG_LOG_MSG_MAX * 2];
 
     while (true) {
         app_log_entry_t entry;

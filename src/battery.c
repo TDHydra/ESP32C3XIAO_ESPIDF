@@ -96,8 +96,10 @@ static uint32_t read_battery_mv(void)
         voltage_mv = (int)((raw_avg * 3100) / 4095);
     }
 
-    /* Undo the onboard voltage divider to get actual cell voltage */
-    return (uint32_t)((float)voltage_mv * CFG_BATTERY_VDIV_RATIO);
+    /* Undo the onboard voltage divider using integer arithmetic.
+     * CFG_BATTERY_VDIV_NUM/DEN encode the ratio (e.g. 2/1 for a 2:1 divider). */
+    return (uint32_t)((uint32_t)voltage_mv * CFG_BATTERY_VDIV_NUM
+                      / CFG_BATTERY_VDIV_DEN);
 }
 
 /* ── Monitor task ────────────────────────────────────────────────────── */
@@ -189,7 +191,8 @@ esp_err_t battery_init(void)
     ESP_LOGI(TAG, "Initialising battery monitor");
     ESP_LOGI(TAG, "  ADC unit=%d  channel=%d  atten=%d",
              CFG_BATTERY_ADC_UNIT, CFG_BATTERY_ADC_CHANNEL, CFG_BATTERY_ADC_ATTEN);
-    ESP_LOGI(TAG, "  Voltage divider ratio: %.1f", CFG_BATTERY_VDIV_RATIO);
+    ESP_LOGI(TAG, "  Voltage divider ratio: %d:%d",
+             CFG_BATTERY_VDIV_NUM, CFG_BATTERY_VDIV_DEN);
     ESP_LOGI(TAG, "  Thresholds: LOW=%d mV  CRIT=%d mV",
              CFG_BATTERY_LOW_MV, CFG_BATTERY_CRITICAL_MV);
 

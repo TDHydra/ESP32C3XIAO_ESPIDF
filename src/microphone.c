@@ -15,7 +15,6 @@
  *   GND  → GND
  *   L/R  → GND
  */
-#include <math.h>
 #include <string.h>
 
 #include "freertos/FreeRTOS.h"
@@ -68,14 +67,23 @@ static void microphone_task(void *arg)
 
         int num_samples = (int)(bytes_read / sizeof(int32_t));
 
-        /* Compute RMS.  INMP441 24-bit data is in bits [31:8] of each word. */
+        /* Compute RMS using integer arithmetic (no FPU on ESP32-C3 RISC-V).
+         * INMP441 24-bit data is in bits [31:8] of each 32-bit word. */
         int64_t sum_sq = 0;
         for (int i = 0; i < num_samples; i++) {
             /* Arithmetic right-shift preserves sign */
             int32_t s = samples[i] >> 8;
             sum_sq += (int64_t)s * s;
         }
-        uint32_t rms = (uint32_t)sqrt((double)sum_sq / num_samples);
+        /* Integer square root (Newton–Raphson, no floating point) */
+        uint64_t mean_sq = (uint64_t)(sum_sq / num_samples);
+        uint32_t rms = 0;
+        if (mean_sq > 0) {
+            uint64_t x = mean_sq;
+            uint64_t y = (x + 1) / 2;
+            while (y < x) { x = y; y = (x + mean_sq / x) / 2; }
+            rms = (uint32_t)x;
+        }
         s_rms_latest = rms;
 
         uint64_t now_ms = (uint64_t)(esp_timer_get_time() / 1000ULL);

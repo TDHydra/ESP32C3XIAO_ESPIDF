@@ -121,12 +121,13 @@ static int app_log_vprintf(const char *fmt, va_list args)
     int ret = vprintf(fmt, args_uart);
     va_end(args_uart);
 
-    /* 2. Render the full log line into a local buffer */
-    char raw[CFG_LOG_MSG_MAX * 2];
-    vsnprintf(raw, sizeof(raw), fmt, args);
-
-    /* 3. Parse and store in ring buffer */
+    /* 2. Under mutex: render into a static buffer then parse and store.
+     *    Using a static buffer avoids a large on-stack allocation for every
+     *    log call.  The mutex ensures the buffer is safe across tasks. */
     if (s_mutex && xSemaphoreTake(s_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+        static char raw[CFG_LOG_MSG_MAX * 2]; /* protected by mutex */
+        vsnprintf(raw, sizeof(raw), fmt, args);
+
         app_log_level_t level;
         char tag[CFG_LOG_TAG_MAX];
         char msg[CFG_LOG_MSG_MAX];

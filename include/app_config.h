@@ -37,11 +37,12 @@ extern "C" {
 #define CFG_BATTERY_ADC_CHANNEL     ADC_CHANNEL_3   /**< GPIO3 = ADC1_CH3 */
 #define CFG_BATTERY_ADC_ATTEN       ADC_ATTEN_DB_12 /**< 0 – ~3.1 V input range */
 #define CFG_BATTERY_ADC_SAMPLES     64              /**< Oversamples averaged per reading */
-#define CFG_BATTERY_VDIV_RATIO      2.0f            /**< Divide-down ratio (2:1 onboard) */
+#define CFG_BATTERY_VDIV_RATIO      2.0f            /**< Divide-down ratio (2:1 onboard) — documentation */
+#define CFG_BATTERY_VDIV_NUM        2               /**< Integer numerator  of divider ratio */
+#define CFG_BATTERY_VDIV_DEN        1               /**< Integer denominator of divider ratio */
 #define CFG_BATTERY_CHECK_MS        30000           /**< Measurement period (ms) */
 
-/** Li-ion cell voltage thresholds — identical for 18650 and 21700 */
-#define CFG_BATTERY_FULL_MV         4200            /**< 100 % */
+/** Li-ion cell voltage thresholds — identical for 18650 and 21700 */#define CFG_BATTERY_FULL_MV         4200            /**< 100 % */
 #define CFG_BATTERY_HIGH_MV         3900            /**< ~75 % */
 #define CFG_BATTERY_MED_MV          3700            /**< ~50 % */
 #define CFG_BATTERY_LOW_MV          3500            /**< ~25 % — LOW warning */
@@ -82,10 +83,8 @@ extern "C" {
 #define CFG_WEBSERVER_PORT          80
 /** SSE poll granularity — handler wakes every this many ms */
 #define CFG_SSE_POLL_MS             100
-/** Send SSE keepalive comment after this many idle polls */
+/** Send status event (doubles as SSE keepalive) after this many idle polls */
 #define CFG_SSE_KEEPALIVE_POLLS     50   /* 50 × 100 ms = 5 s */
-/** Send status event after this many idle polls */
-#define CFG_SSE_STATUS_POLLS        50
 
 /* ================================================================
  * Application log ring buffer
